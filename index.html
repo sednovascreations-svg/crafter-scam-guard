@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crafter Scam Guard — Verify Before You Pay</title>
+<style>
+  :root {
+    --primary: #7c3f8e;
+    --primary-light: #a05cb5;
+    --accent: #e8a838;
+    --danger: #c0392b;
+    --safe: #27ae60;
+    --warn: #e67e22;
+    --bg: #faf8fc;
+    --card: #ffffff;
+    --text: #2c2c3a;
+    --muted: #6b6b80;
+    --border: #e0d9e8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, #4a1a6b 100%);
+    color: white;
+    padding: 2rem 1.5rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: '🧵 ✂️ 🪡 🧶 🎀 🪢 🧵 ✂️ 🪡 🧶 🎀 🪢 🧵 ✂️ 🪡 🧶 🎀 🪢';
+    position: absolute;
+    bottom: 0.5rem;
+    left: 0;
+    right: 0;
+    font-size: 1.1rem;
+    opacity: 0.25;
+    white-space: nowrap;
+    overflow: hidden;
+    letter-spacing: 0.5rem;
+  }
+  header h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.5px; }
+  header h1 span { color: var(--accent); }
+  header p { margin-top: 0.5rem; opacity: 0.9; font-size: 1rem; max-width: 500px; margin-inline: auto; }
+
+  .shield-icon { font-size: 3rem; margin-bottom: 0.75rem; }
+
+  /* NAV TABS */
+  nav {
+    background: white;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  nav button {
+    padding: 1rem 1.5rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  nav button:hover { color: var(--primary); }
+  nav button.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+  /* MAIN CONTENT */
+  main { max-width: 900px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* SEARCH */
+  .search-bar {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+  }
+  .search-bar input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar input:focus { border-color: var(--primary); }
+  .search-bar select {
+    padding: 0.8rem 1rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+    outline: none;
+  }
+
+  /* EVENT CARDS */
+  .events-grid { display: grid; gap: 1rem; }
+
+  .event-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem;
+    align-items: start;
+    transition: box-shadow 0.2s, border-color 0.2s;
+  }
+  .event-card:hover { box-shadow: 0 4px 16px rgba(124,63,142,0.12); border-color: var(--primary-light); }
+
+  .event-card h3 { font-size: 1.05rem; color: var(--text); }
+  .event-card .org { font-size: 0.85rem; color: var(--muted); margin-top: 0.15rem; }
+  .event-card .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.6rem; }
+  .tag {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    font-weight: 600;
+  }
+  .tag-location { background: #ede9f7; color: var(--primary); }
+  .tag-type { background: #fef3e2; color: #8a5700; }
+  .tag-annual { background: #e6f7ee; color: #1a5c38; }
+
+  .verified-badge {
+    background: var(--safe);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    white-space: nowrap;
+    align-self: start;
+  }
+
+  .event-details { margin-top: 0.75rem; }
+  .event-details summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--primary);
+    font-weight: 600;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+  .event-details summary::before { content: '▶'; font-size: 0.65rem; transition: transform 0.2s; }
+  .event-details[open] summary::before { transform: rotate(90deg); }
+  .event-details .detail-body {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f6fb;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    display: grid;
+    gap: 0.4rem;
+  }
+  .detail-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .detail-row strong { min-width: 100px; color: var(--muted); font-weight: 600; }
+  .detail-row a { color: var(--primary); text-decoration: none; }
+  .detail-row a:hover { text-decoration: underline; }
+
+  .payment-warning {
+    margin-top: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    background: #fef9ec;
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.8rem;
+    color: #6b4e00;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+  }
+  .no-results p { font-size: 1.1rem; margin-bottom: 0.5rem; }
+
+  /* CHECKLIST */
+  .checklist-intro {
+    background: #fff8e6;
+    border: 1.5px solid #f5d488;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2rem;
+    font-size: 0.95rem;
+  }
+  .checklist-intro strong { color: #7a5000; }
+
+  .check-section { margin-bottom: 2rem; }
+  .check-section h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    border: 1.5px solid transparent;
+  }
+  .check-item:hover { background: #f5f2fa; }
+  .check-item.checked { background: #edfaf3; border-color: #a8e6c3; }
+  .check-item.red-flag.checked { background: #fdf0ef; border-color: #f0a9a5; }
+
+  .check-item input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.1rem;
+    accent-color: var(--primary);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .check-item.red-flag input[type="checkbox"] { accent-color: var(--danger); }
+
+  .check-item label {
+    cursor: pointer;
+    font-size: 0.9rem;
+    flex: 1;
+  }
+  .check-item label strong { display: block; margin-bottom: 0.2rem; }
+  .check-item label span { color: var(--muted); font-size: 0.82rem; }
+
+  .score-bar {
+    position: sticky;
+    bottom: 1rem;
+    background: white;
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .score-label { font-weight: 700; font-size: 0.9rem; flex: 1; min-width: 120px; }
+  .score-meter {
+    flex: 2;
+    min-width: 150px;
+    height: 12px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .score-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.4s, background 0.4s;
+    width: 0%;
+    background: var(--muted);
+  }
+  .score-verdict {
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .verdict-unknown { background: #eee; color: var(--muted); }
+  .verdict-safe { background: #d4efdf; color: #1a5c38; }
+  .verdict-caution { background: #fef3cd; color: #7a5000; }
+  .verdict-danger { background: #fde8e7; color: #7a1a1a; }
+
+  /* TIPS */
+  .tips-grid { display: grid; gap: 1.25rem; }
+  .tip-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+  }
+  .tip-card h3 { font-size: 1rem; margin-bottom: 0.5rem; display: flex; gap: 0.5rem; align-items: center; }
+  .tip-card p, .tip-card li { font-size: 0.9rem; color: #3a3a4a; line-height: 1.7; }
+  .tip-card ul { padding-left: 1.2rem; }
+
+  .danger-card { border-color: #f5c6c4; background: #fff8f8; }
+  .danger-card h3 { color: var(--danger); }
+  .safe-card { border-color: #a8e6c3; background: #f5fff9; }
+  .safe-card h3 { color: var(--safe); }
+  .warn-card { border-color: #f8d49e; background: #fffdf5; }
+  .warn-card h3 { color: var(--warn); }
+
+  /* REPORT */
+  .report-section {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .report-section h3 { font-size: 1.05rem; margin-bottom: 0.75rem; }
+  .report-section p { font-size: 0.9rem; color: #3a3a4a; margin-bottom: 1rem; line-height: 1.7; }
+  .report-section a.btn {
+    display: inline-block;
+    background: var(--primary);
+    color: white;
+    padding: 0.65rem 1.4rem;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .report-section a.btn:hover { background: var(--primary-light); }
+
+  .disclaimer {
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.5rem; }
+    nav button { padding: 0.8rem 0.9rem; font-size: 0.8rem; }
+    .event-card { grid-template-columns: 1fr; }
+    .verified-badge { justify-self: start; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="shield-icon">🛡️</div>
+  <h1>Crafter <span>Scam Guard</span></h1>
+  <p>Verify craft fair booth fees before you pay. Don't let scammers steal your hard work.</p>
+</header>
+
+<nav>
+  <button class="active" onclick="showTab('directory')">🗂️ Event Directory</button>
+  <button onclick="showTab('checklist')">✅ Is It Legit?</button>
+  <button onclick="showTab('tips')">💡 Payment Safety</button>
+  <button onclick="showTab('report')">🚨 Report a Scam</button>
+</nav>
+
+<main>
+
+  <!-- TAB 1: DIRECTORY -->
+  <div id="tab-directory" class="tab-panel active">
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search event name, city, or state..." oninput="filterEvents()">
+      <select id="stateFilter" onchange="filterEvents()">
+        <option value="">All States</option>
+        <option value="National">National</option>
+        <option value="AL">Alabama</option>
+        <option value="AZ">Arizona</option>
+        <option value="CA">California</option>
+        <option value="CO">Colorado</option>
+        <option value="CT">Connecticut</option>
+        <option value="FL">Florida</option>
+        <option value="GA">Georgia</option>
+        <option value="IL">Illinois</option>
+        <option value="IN">Indiana</option>
+        <option value="KY">Kentucky</option>
+        <option value="MA">Massachusetts</option>
+        <option value="MD">Maryland</option>
+        <option value="MI">Michigan</option>
+        <option value="MN">Minnesota</option>
+        <option value="MO">Missouri</option>
+        <option value="NC">North Carolina</option>
+        <option value="NJ">New Jersey</option>
+        <option value="NY">New York</option>
+        <option value="OH">Ohio</option>
+        <option value="OR">Oregon</option>
+        <option value="PA">Pennsylvania</option>
+        <option value="TN">Tennessee</option>
+        <option value="TX">Texas</option>
+        <option value="VA">Virginia</option>
+        <option value="WA">Washington</option>
+        <option value="WI">Wisconsin</option>
+      </select>
+      <select id="typeFilter" onchange="filterEvents()">
+        <option value="">All Types</option>
+        <option value="Juried">Juried</option>
+        <option value="Open">Open Application</option>
+        <option value="Online">Online / Virtual</option>
+      </select>
+    </div>
+
+    <div id="eventsGrid" class="events-grid"></div>
+    <div id="noResults" class="no-results" style="display:none">
+      <p>No events match your search.</p>
+      <p style="font-size:0.9rem">Know of a legitimate event we should add? Use the <strong>Report</strong> tab to suggest it.</p>
+    </div>
+
+    <p class="disclaimer">
+      This directory lists publicly known events for reference only. Always verify contact info directly on an event's official website.
+      Inclusion does not guarantee legitimacy of any individual communication you receive. Last updated June 2026.
+    </p>
+  </div>
+
+  <!-- TAB 2: CHECKLIST -->
+  <div id="tab-checklist" class="tab-panel">
+    <div class="checklist-intro">
+      <strong>How to use this:</strong> Got an email or social media message about a craft fair booth opportunity?
+      Work through these questions. The more green boxes you check — and the fewer red flags you hit — the safer it looks.
+    </div>
+
+    <div class="check-section">
+      <h3>🟢 Good Signs — check all that apply</h3>
+
+      <div class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>Official website exists and looks professional</strong>
+          <span>Search the event name + your city. A real event should have its own domain, not just a Facebook page.</span>
+        </label>
+      </div>
+
+      <div class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>Contact email matches the official website domain</strong>
+          <span>If the event is "ArtFestUSA," their email should be from @artfestusa.com — not Gmail, Yahoo, or Hotmail.</span>
+        </label>
+      </div>
+
+      <div class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>Event has been running for multiple years with verifiable history</strong>
+          <span>Search for past years' photos, press coverage, or vendor reviews on Yelp, Google, or crafter forums.</span>
+        </label>
+      </div>
+
+      <div class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>Payment is accepted by check payable to a business name, or through a verified platform</strong>
+          <span>Legitimate events accept checks made to an LLC/organization, or use Eventbrite, PayPal Business, or Square.</span>
+        </label>
+      </div>
+
+      <div class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>You can find other vendors who participated last year</strong>
+          <span>Search vendor hashtags or ask in Facebook crafter groups. Real events have a trail of happy (or unhappy) vendors.</span>
+        </label>
+      </div>
+
+      <div class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>The booth fee amount is consistent with similar events in your area</strong>
+          <span>A suspiciously cheap fee can be bait. A very expensive fee with no online presence is a red flag.</span>
+        </label>
+      </div>
+
+      <div class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>You found the opportunity through the event's official channel (not just a random DM)</strong>
+          <span>You saw it on their official website, their verified social account, or a trusted crafter marketplace like Juried Art Services.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="check-section">
+      <h3>🔴 Red Flags — check any that apply</h3>
+
+      <div class="check-item red-flag" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>They contacted YOU out of nowhere</strong>
+          <span>Scammers often copy your Etsy or Instagram and send unsolicited "you've been selected" messages.</span>
+        </label>
+      </div>
+
+      <div class="check-item red-flag" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>They're asking for payment by Zelle, Venmo (friends & family), Cash App, or wire transfer</strong>
+          <span>These are essentially cash — no buyer protection. Legitimate events rarely require these methods.</span>
+        </label>
+      </div>
+
+      <div class="check-item red-flag" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>There is urgency or pressure ("only 2 spots left!", "deadline is tomorrow")</strong>
+          <span>Scammers create panic so you don't have time to verify. Real events have reasonable timelines.</span>
+        </label>
+      </div>
+
+      <div class="check-item red-flag" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>The event name is very similar to a well-known event but slightly different</strong>
+          <span>Example: "Renegade Craft Festival Chicago" (real) vs. "Renegade Crafts Expo Chicago" (fake clone).</span>
+        </label>
+      </div>
+
+      <div class="check-item red-flag" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>They can't or won't answer specific questions about the event location, date, or organizer</strong>
+          <span>Ask for the venue address, the organizer's full name, and their business registration. Evasion is a red flag.</span>
+        </label>
+      </div>
+
+      <div class="check-item red-flag" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>The event has no physical address or the address doesn't check out on Google Maps</strong>
+          <span>Search the venue address. Scammers often use fake or copy-pasted addresses from real venues.</span>
+        </label>
+      </div>
+
+      <div class="check-item red-flag" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>They're asking for more personal information than needed (SSN, bank account details)</strong>
+          <span>An event organizer only needs your name, business name, and contact info. Never share SSN or banking details.</span>
+        </label>
+      </div>
+
+      <div class="check-item red-flag" onclick="toggleCheck(this)">
+        <input type="checkbox">
+        <label>
+          <strong>Social media accounts are brand new or have very few followers/posts</strong>
+          <span>Check the account creation date. Scammers clone real event pages but can't fake years of history.</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="score-bar" id="scoreBar">
+      <div class="score-label">Safety Score</div>
+      <div class="score-meter"><div class="score-fill" id="scoreFill"></div></div>
+      <div class="score-verdict verdict-unknown" id="scoreVerdict">Answer questions above</div>
+    </div>
+  </div>
+
+  <!-- TAB 3: PAYMENT TIPS -->
+  <div id="tab-tips" class="tab-panel">
+    <div class="tips-grid">
+
+      <div class="tip-card safe-card">
+        <h3>✅ Safe Payment Methods</h3>
+        <ul>
+          <li><strong>Check payable to a business name</strong> — provides a paper trail and the name should match the event organizer's registered business.</li>
+          <li><strong>PayPal (Goods & Services)</strong> — NOT "Friends & Family." Goods & Services has buyer protection. If they insist on Friends & Family, walk away.</li>
+          <li><strong>Eventbrite, Zapplication, or Juried Art Services</strong> — established platforms designed for event registration with built-in protection.</li>
+          <li><strong>Credit card</strong> — your bank can do a chargeback if the event is fraudulent. Always the safest option for large fees.</li>
+          <li><strong>Square / Stripe invoices</strong> — legitimate businesses use these. Check that the invoice email domain matches the event's official domain.</li>
+        </ul>
+      </div>
+
+      <div class="tip-card danger-card">
+        <h3>🚫 Payment Methods to Refuse</h3>
+        <ul>
+          <li><strong>Zelle</strong> — no buyer protection whatsoever. Money is gone the instant you send it.</li>
+          <li><strong>Venmo (Friends & Family)</strong> — same as above. No recourse.</li>
+          <li><strong>Cash App</strong> — peer-to-peer with no dispute mechanism for this type of fraud.</li>
+          <li><strong>Wire transfer / bank transfer</strong> — irreversible and untraceable once sent.</li>
+          <li><strong>Gift cards</strong> — if anyone ever asks you to pay a booth fee with Google Play or iTunes gift cards, it is 100% a scam. Always.</li>
+          <li><strong>Cryptocurrency</strong> — no recourse if fraudulent.</li>
+        </ul>
+      </div>
+
+      <div class="tip-card warn-card">
+        <h3>⚠️ Before You Pay Anything</h3>
+        <ul>
+          <li>Call the event organizer on a phone number listed on their <em>official website</em> — not a number from the email they sent you.</li>
+          <li>Search "[Event Name] scam" or "[Event Name] vendor reviews" before paying.</li>
+          <li>Ask in Facebook crafter groups — communities like "Craft Fair Vendors" or local state groups often know which events are legit.</li>
+          <li>Verify the organizer's business is registered in their state (most states have a free online business search tool).</li>
+          <li>Screenshot everything — the invitation, the payment request, and the organizer's contact info.</li>
+        </ul>
+      </div>
+
+      <div class="tip-card">
+        <h3>🔍 How to Verify an Email Is Really From the Event</h3>
+        <p style="margin-bottom:0.75rem">Scammers impersonate real events. Here's how to check:</p>
+        <ul>
+          <li>Hover over the sender name to see the actual email address (don't just read the display name).</li>
+          <li>The domain after the @ should match their official website exactly. <code>@renegadecraft.com</code> is real; <code>@renegadecraft-events.net</code> may not be.</li>
+          <li>Go to the event's official website yourself and look for a login portal or vendor contact — don't click links from the email.</li>
+          <li>If in doubt, reply to the email but also CC the address listed on the official website, and see which reply comes back consistently.</li>
+        </ul>
+      </div>
+
+      <div class="tip-card">
+        <h3>📞 If You Think You've Been Scammed</h3>
+        <ul>
+          <li><strong>Contact your bank immediately</strong> — the sooner you report it, the better your chance of recovery.</li>
+          <li><strong>File a report at the FTC</strong> — reportfraud.ftc.gov</li>
+          <li><strong>File an IC3 complaint</strong> — ic3.gov (FBI Internet Crime Complaint Center)</li>
+          <li><strong>Report to your state Attorney General</strong> — most have consumer fraud divisions.</li>
+          <li><strong>Warn the crafting community</strong> — post in Facebook crafter groups so others aren't hit.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 4: REPORT -->
+  <div id="tab-report" class="tab-panel">
+    <div class="report-section">
+      <h3>🚨 Report a Scam or Suspicious Listing</h3>
+      <p>
+        If you've encountered a fake event, a scam booth fee request, or someone impersonating a real event organizer,
+        please report it. Your report helps protect the entire crafting community.
+      </p>
+      <p>
+        File a report through any or all of these channels — the more reports, the more likely action will be taken:
+      </p>
+      <ul style="font-size:0.9rem; line-height:2; padding-left:1.2rem; margin-bottom:1rem;">
+        <li><strong>FTC (Federal Trade Commission)</strong> — reportfraud.ftc.gov — the primary US fraud reporting agency</li>
+        <li><strong>FBI IC3</strong> — ic3.gov — for internet-based fraud, especially if you lost money</li>
+        <li><strong>Your state Attorney General</strong> — search "[your state] AG consumer fraud"</li>
+        <li><strong>The platform where you found it</strong> — report the fake post/account to Facebook, Instagram, or Etsy directly</li>
+      </ul>
+      <a href="https://reportfraud.ftc.gov" class="btn" target="_blank" rel="noopener noreferrer">Report to FTC →</a>
+    </div>
+
+    <div class="report-section">
+      <h3>➕ Suggest a Verified Event to Add</h3>
+      <p>
+        Know a legitimate, well-established craft fair or juried show that should be in our directory?
+        We'd love to add it. Send us the event name, official website, and state, and we'll verify and list it.
+      </p>
+      <p style="color: var(--muted); font-size:0.85rem;">
+        To suggest an event: email <strong>sednovascreations@gmail.com</strong> with the subject line "Event Directory Suggestion."
+        Include the event name, official website URL, organizer contact, and how long the event has been running.
+      </p>
+    </div>
+
+    <div class="report-section">
+      <h3>📣 Spread the Word</h3>
+      <p>
+        Share this tool with fellow crafters in your Facebook groups, on Instagram, or at your next show.
+        The best defense against scammers is a well-informed community.
+      </p>
+      <p style="font-size:0.85rem; color:var(--muted);">
+        Bookmark this page and share the link: <strong>your-domain.com/crafter-scam-guard</strong>
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const EVENTS = [
+  {
+    name: "Renegade Craft Fair",
+    organizer: "Renegade Craft",
+    states: ["IL", "CA", "NY", "TX"],
+    locations: "Chicago, Los Angeles, Brooklyn, Austin (and more)",
+    type: "Juried",
+    annual: true,
+    website: "renegadecraft.com",
+    officialEmail: "info@renegadecraft.com",
+    application: "Zapplication (juried)",
+    payment: "Zapplication platform",
+    notes: "One of the largest independent craft fairs in the US. Application opens annually — always apply through Zapplication only."
+  },
+  {
+    name: "American Craft Council Shows",
+    organizer: "American Craft Council",
+    states: ["MD", "MN", "GA", "CA"],
+    locations: "Baltimore, St. Paul, Atlanta, San Francisco",
+    type: "Juried",
+    annual: true,
+    website: "craftcouncil.org",
+    officialEmail: "shows@craftcouncil.org",
+    application: "Juried Art Services",
+    payment: "Juried Art Services platform or check",
+    notes: "Highly prestigious juried shows. Scammers have impersonated ACC emails — always verify at craftcouncil.org directly."
+  },
+  {
+    name: "Indie Craft Parade",
+    organizer: "Indie Craft Parade LLC",
+    states: ["SC"],
+    locations: "Greenville, SC",
+    type: "Juried",
+    annual: true,
+    website: "indiecraftparade.com",
+    officialEmail: "hello@indiecraftparade.com",
+    application: "Their official website",
+    payment: "Online via their site",
+    notes: "Annual September event in Greenville. Applications open in spring."
+  },
+  {
+    name: "Crafty Wonderland",
+    organizer: "Crafty Wonderland",
+    states: ["OR"],
+    locations: "Portland, OR",
+    type: "Juried",
+    annual: true,
+    website: "craftywonderland.com",
+    officialEmail: "hello@craftywonderland.com",
+    application: "Their official website",
+    payment: "Online via their site",
+    notes: "Portland's beloved indie craft fair. Holiday show is especially popular."
+  },
+  {
+    name: "Maker Faire",
+    organizer: "Make Community LLC",
+    states: ["National"],
+    locations: "Multiple cities (check makerfaire.com for your area)",
+    type: "Open",
+    annual: true,
+    website: "makerfaire.com",
+    officialEmail: "makers@makerfaire.com",
+    application: "makerfaire.com/apply",
+    payment: "Online through their official portal",
+    notes: "Many regional Mini Maker Faires are independently organized — always verify a local faire is listed on makerfaire.com."
+  },
+  {
+    name: "Etsy Holiday Markets",
+    organizer: "Etsy, Inc.",
+    states: ["NY", "National"],
+    locations: "New York (flagship) + select cities",
+    type: "Juried",
+    annual: true,
+    website: "etsy.com",
+    officialEmail: "Invitations only via seller dashboard",
+    application: "Etsy seller invitation (not open application)",
+    payment: "Through Etsy only",
+    notes: "Etsy markets are invitation-only through the Etsy seller platform. Any outside email claiming to offer Etsy market spots is a scam."
+  },
+  {
+    name: "One of a Kind Show",
+    organizer: "One of a Kind Show & Sale",
+    states: ["IL"],
+    locations: "Chicago, IL (Merchandise Mart)",
+    type: "Juried",
+    annual: true,
+    website: "oneofakindshow.com",
+    officialEmail: "info@oneofakindshow.com",
+    application: "oneofakindshow.com",
+    payment: "Check or credit card through their official system",
+    notes: "Held twice yearly (spring and holiday). A premier juried show at Chicago's Merchandise Mart."
+  },
+  {
+    name: "National Stationery Show",
+    organizer: "Emerald Expositions",
+    states: ["NY"],
+    locations: "New York City, NY",
+    type: "Open",
+    annual: true,
+    website: "nationalstationeryshow.com",
+    officialEmail: "nss@emeraldx.com",
+    application: "nationalstationeryshow.com",
+    payment: "Official exhibitor portal",
+    notes: "Trade show for stationery and paper goods. B2B focused — primarily for wholesale, not direct-to-consumer."
+  },
+  {
+    name: "Bazaar Bizarre",
+    organizer: "Bazaar Bizarre",
+    states: ["MA", "OH"],
+    locations: "Boston, MA & Cleveland, OH",
+    type: "Juried",
+    annual: true,
+    website: "bazaarbizarre.org",
+    officialEmail: "info@bazaarbizarre.org",
+    application: "bazaarbizarre.org",
+    payment: "Online via their site",
+    notes: "Alternative/indie craft fair with a fun, eclectic vibe. Holiday show is the main event."
+  },
+  {
+    name: "Urban Craft Uprising",
+    organizer: "Urban Craft Uprising",
+    states: ["WA"],
+    locations: "Seattle, WA",
+    type: "Juried",
+    annual: true,
+    website: "urbancraftuprising.com",
+    officialEmail: "info@urbancraftuprising.com",
+    application: "urbancraftuprising.com",
+    payment: "Online via their site",
+    notes: "Seattle's largest indie craft show. Summer and winter editions."
+  },
+  {
+    name: "Art Star Craft Bazaar",
+    organizer: "Art Star Gallery",
+    states: ["PA"],
+    locations: "Philadelphia, PA",
+    type: "Juried",
+    annual: true,
+    website: "artstarphilly.com",
+    officialEmail: "hello@artstarphilly.com",
+    application: "artstarphilly.com",
+    payment: "Online via their site",
+    notes: "Philly's beloved indie craft festival, held in Penn Treaty Park."
+  },
+  {
+    name: "Craftcation Conference",
+    organizer: "Delilah Snell / Where Women Create",
+    states: ["CA"],
+    locations: "Ventura, CA",
+    type: "Open",
+    annual: true,
+    website: "craftcationconference.com",
+    officialEmail: "hello@craftcationconference.com",
+    application: "craftcationconference.com",
+    payment: "Online registration",
+    notes: "Business conference + market for makers. Not a public craft fair — more for maker education and wholesale."
+  },
+  {
+    name: "Felt Club",
+    organizer: "Felt Club",
+    states: ["CA"],
+    locations: "Los Angeles, CA",
+    type: "Juried",
+    annual: true,
+    website: "feltclub.com",
+    officialEmail: "contact@feltclub.com",
+    application: "feltclub.com",
+    payment: "Online via their site",
+    notes: "LA's indie craft fair. Annual holiday show."
+  },
+  {
+    name: "Cleveland Flea",
+    organizer: "Cleveland Flea",
+    states: ["OH"],
+    locations: "Cleveland, OH",
+    type: "Open",
+    annual: true,
+    website: "clevelandflea.com",
+    officialEmail: "hello@clevelandflea.com",
+    application: "clevelandflea.com",
+    payment: "Online application",
+    notes: "Monthly market in Cleveland with a mix of vintage, handmade, and food vendors."
+  },
+  {
+    name: "Patchwork Show",
+    organizer: "Patchwork Show",
+    states: ["CA", "OR"],
+    locations: "Orange County CA, Santa Ana CA, Portland OR (and more)",
+    type: "Juried",
+    annual: true,
+    website: "patchworkshow.com",
+    officialEmail: "hello@patchworkshow.com",
+    application: "patchworkshow.com",
+    payment: "Online via their site",
+    notes: "Indie craft fairs across California and the Pacific Northwest."
+  }
+];
+
+function renderEvents(list) {
+  const grid = document.getElementById('eventsGrid');
+  const noResults = document.getElementById('noResults');
+  if (list.length === 0) {
+    grid.innerHTML = '';
+    noResults.style.display = 'block';
+    return;
+  }
+  noResults.style.display = 'none';
+  grid.innerHTML = list.map(e => `
+    <div class="event-card">
+      <div>
+        <h3>${e.name}</h3>
+        <div class="org">${e.organizer}</div>
+        <div class="meta">
+          <span class="tag tag-location">📍 ${e.locations}</span>
+          <span class="tag tag-type">${e.type}</span>
+          ${e.annual ? '<span class="tag tag-annual">Annual</span>' : ''}
+        </div>
+        <details class="event-details">
+          <summary>Verify this event</summary>
+          <div class="detail-body">
+            <div class="detail-row"><strong>Official site:</strong> <a href="https://${e.website}" target="_blank" rel="noopener">${e.website}</a></div>
+            <div class="detail-row"><strong>Official email:</strong> ${e.officialEmail}</div>
+            <div class="detail-row"><strong>Applications:</strong> ${e.application}</div>
+            <div class="detail-row"><strong>Payment via:</strong> ${e.payment}</div>
+            ${e.notes ? `<div class="payment-warning">⚠️ ${e.notes}</div>` : ''}
+          </div>
+        </details>
+      </div>
+      <div class="verified-badge">✓ Verified</div>
+    </div>
+  `).join('');
+}
+
+function filterEvents() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const stateFilter = document.getElementById('stateFilter').value;
+  const typeFilter = document.getElementById('typeFilter').value;
+
+  const filtered = EVENTS.filter(e => {
+    const matchesQuery = !query ||
+      e.name.toLowerCase().includes(query) ||
+      e.locations.toLowerCase().includes(query) ||
+      e.organizer.toLowerCase().includes(query);
+    const matchesState = !stateFilter || e.states.includes(stateFilter);
+    const matchesType = !typeFilter || e.type === typeFilter;
+    return matchesQuery && matchesState && matchesType;
+  });
+
+  renderEvents(filtered);
+}
+
+// CHECKLIST SCORE
+function toggleCheck(item) {
+  const cb = item.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  item.classList.toggle('checked', cb.checked);
+  updateScore();
+}
+
+function updateScore() {
+  const greenItems = document.querySelectorAll('.check-section:first-of-type .check-item input[type="checkbox"]');
+  const redItems = document.querySelectorAll('.check-item.red-flag input[type="checkbox"]');
+
+  const greenChecked = [...greenItems].filter(cb => cb.checked).length;
+  const redChecked = [...redItems].filter(cb => cb.checked).length;
+  const total = greenItems.length + redItems.length;
+  const answered = greenChecked + redChecked;
+
+  if (answered === 0) {
+    document.getElementById('scoreVerdict').className = 'score-verdict verdict-unknown';
+    document.getElementById('scoreVerdict').textContent = 'Answer questions above';
+    document.getElementById('scoreFill').style.width = '0%';
+    return;
+  }
+
+  // Score: green checks add points, red flags subtract
+  const rawScore = (greenChecked * 2 - redChecked * 3);
+  const maxScore = greenItems.length * 2;
+  const percent = Math.max(0, Math.min(100, (rawScore / maxScore) * 100));
+
+  const fill = document.getElementById('scoreFill');
+  const verdict = document.getElementById('scoreVerdict');
+  fill.style.width = percent + '%';
+
+  if (redChecked >= 3) {
+    fill.style.background = '#c0392b';
+    verdict.className = 'score-verdict verdict-danger';
+    verdict.textContent = '🚨 High Risk — Do Not Pay';
+  } else if (redChecked >= 1 || percent < 40) {
+    fill.style.background = '#e67e22';
+    verdict.className = 'score-verdict verdict-caution';
+    verdict.textContent = '⚠️ Proceed with Caution';
+  } else if (percent >= 70 && redChecked === 0) {
+    fill.style.background = '#27ae60';
+    verdict.className = 'score-verdict verdict-safe';
+    verdict.textContent = '✅ Looks Legitimate';
+  } else {
+    fill.style.background = '#e67e22';
+    verdict.className = 'score-verdict verdict-caution';
+    verdict.textContent = '⚠️ Verify More Before Paying';
+  }
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// Init
+renderEvents(EVENTS);
+</script>
+</body>
+</html>
